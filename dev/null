@@ -1,0 +1,11 @@
+"use client";
+import { jsx, jsxs } from "react/jsx-runtime";
+export default function T() {
+  return /* @__PURE__ */ jsxs("div", { children: [
+    5 > 0 && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("span", { children: "a" }) }),
+    5 > 0 && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("span", { children: "b" }) }),
+    5 > 0 && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("span", { children: "c" }) }),
+    5 > 0 && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("span", { children: "d" }) }),
+    5 > 0 && /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx("span", { children: "e" }) })
+  ] });
+}
