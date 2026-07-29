@@ -815,12 +815,12 @@ export default function NexLogExpress() {
       <style>{`
         @keyframes pulse-ring { 0% { opacity: 0.4; transform: scale(0.7); } 70% { opacity: 0; transform: scale(1.5); } 100% { opacity: 0; transform: scale(1.5); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .lp-section { padding: 40px 24px 80px; max-width: 1200px; margin: 0 auto; }
+        .lp-section { padding: 40px 24px 80px; max-width: 1400px; margin: 0 auto; }
         .lp-title { text-align: center; margin-bottom: 48px; }
-        .lp-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16; }
-        .lp-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20; }
-        .lp-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20; }
-        .lp-grid-5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16; }
+        .lp-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20; }
+        .lp-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24; }
+        .lp-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24; }
+        .lp-grid-5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20; }
         .lp-hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .lp-check-row { display: flex; align-items: center; gap: 8px; }
         @media (max-width: 768px) {
@@ -831,45 +831,45 @@ export default function NexLogExpress() {
 
       {/* Header */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: '#0B0F14DD', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1E2731' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <img src="/logo.jpg" alt="NEXLOG" style={{ height: 84, width: 'auto', borderRadius: 8 }} />
             <span style={{ fontWeight: 700, fontSize: 20, color: '#F4F7F8' }}>NEX<span style={{ background: 'linear-gradient(135deg, #6E2FD9, #FF7A1A)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>LOG</span></span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <a href="#recursos" style={{ color: '#7C8A96', fontSize: 13, textDecoration: 'none' }}>Recursos</a>
-            <a href="#precos" style={{ color: '#7C8A96', fontSize: 13, textDecoration: 'none', marginLeft: 10 }}>Preços</a>
-            <a href="#depoimentos" style={{ color: '#7C8A96', fontSize: 13, textDecoration: 'none', marginLeft: 10 }}>Depoimentos</a>
-            <button onClick={() => { setAuthTab('login'); setShowAuthModal(true); }} style={{ marginLeft: 10, padding: '10px 24px', background: 'transparent', border: '1px solid #1E2731', borderRadius: 8, color: '#F4F7F8', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Entrar</button>
-            <button onClick={() => { setAuthTab('register'); setShowAuthModal(true); }} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #6E2FD9, #FF7A1A)', border: 'none', borderRadius: 8, color: '#FFF', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Criar conta</button>
+            <a href="#recursos" style={{ color: '#7C8A96', fontSize: 14, textDecoration: 'none' }}>Recursos</a>
+            <a href="#precos" style={{ color: '#7C8A96', fontSize: 14, textDecoration: 'none', marginLeft: 14 }}>Preços</a>
+            <a href="#depoimentos" style={{ color: '#7C8A96', fontSize: 14, textDecoration: 'none', marginLeft: 14 }}>Depoimentos</a>
+            <button onClick={() => { setAuthTab('login'); setShowAuthModal(true); }} style={{ marginLeft: 14, padding: '12px 28px', background: 'transparent', border: '1px solid #1E2731', borderRadius: 8, color: '#F4F7F8', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Entrar</button>
+            <button onClick={() => { setAuthTab('register'); setShowAuthModal(true); }} style={{ padding: '12px 28px', background: 'linear-gradient(135deg, #6E2FD9, #FF7A1A)', border: 'none', borderRadius: 8, color: '#FFF', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Criar conta</button>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section style={{ padding: '100px 24px 40px', textAlign: 'center', position: 'relative' }}>
-        <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 16 }}>PLATAFORMA LOGÍSTICA COMPLETA</div>
-        <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28 }}>
+      <section style={{ maxWidth: 1400, margin: '0 auto', padding: '100px 24px 40px', textAlign: 'center', position: 'relative' }}>
+        <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 16 }}>PLATAFORMA LOGÍSTICA COMPLETA</div>
+        <div style={{ position: 'relative', display: 'inline-block', marginBottom: 32 }}>
           <div style={{ position: 'absolute', inset: -20, borderRadius: '50%', border: '1.5px solid #6E2FD9', animation: 'pulse-ring 2.4s ease-out infinite', opacity: 0.4 }} />
           <img src="/logo.jpg" alt="NEXLOG" style={{ width: 180, height: 180, borderRadius: 20, position: 'relative', zIndex: 1 }} />
         </div>
-        <h1 style={{ fontSize: 'clamp(28px, 5vw, 52px)', fontWeight: 700, lineHeight: 1.1, maxWidth: 700, margin: '0 auto 18px', color: '#F4F7F8' }}>
+        <h1 style={{ fontSize: 'clamp(32px, 6vw, 64px)', fontWeight: 700, lineHeight: 1.1, maxWidth: 900, margin: '0 auto 20px', color: '#F4F7F8' }}>
           Sua Frota,{' '}
           <span style={{ background: 'linear-gradient(135deg, #FF7A1A, #FFB627)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Inteligente</span>
           <br />Seu Negócio,{' '}
           <span style={{ background: 'linear-gradient(135deg, #9B5CF0, #6E2FD9)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Conectado</span>
         </h1>
-        <p style={{ fontSize: 17, color: '#7C8A96', maxWidth: 600, margin: '0 auto 32px', lineHeight: 1.7 }}>
+        <p style={{ fontSize: 19, color: '#7C8A96', maxWidth: 700, margin: '0 auto 36px', lineHeight: 1.7 }}>
           Plataforma completa para gestão de fretes, rotas inteligentes, orçamentos instantâneos e marketplace logístico — tudo em um só lugar.
         </p>
         <div className="lp-hero-btns">
-          <button onClick={() => { setAuthTab('register'); setShowAuthModal(true); }} style={{ padding: '14px 36px', background: 'linear-gradient(135deg, #6E2FD9, #FF7A1A)', border: 'none', borderRadius: 12, color: '#FFF', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Começar Grátis</button>
-          <button onClick={() => { document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' }); }} style={{ padding: '14px 36px', background: 'transparent', border: '1px solid #1E2731', borderRadius: 12, color: '#7C8A96', fontWeight: 500, fontSize: 16, cursor: 'pointer' }}>Como Funciona</button>
+          <button onClick={() => { setAuthTab('register'); setShowAuthModal(true); }} style={{ padding: '16px 40px', background: 'linear-gradient(135deg, #6E2FD9, #FF7A1A)', border: 'none', borderRadius: 12, color: '#FFF', fontWeight: 700, fontSize: 17, cursor: 'pointer' }}>Começar Grátis</button>
+          <button onClick={() => { document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' }); }} style={{ padding: '16px 40px', background: 'transparent', border: '1px solid #1E2731', borderRadius: 12, color: '#7C8A96', fontWeight: 500, fontSize: 17, cursor: 'pointer' }}>Como Funciona</button>
         </div>
       </section>
 
       {/* Dashboard Preview */}
-      <section style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px 60px' }}>
+      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 60px' }}>
         <div style={{ background: '#10161D', border: '1px solid #1E2731', borderRadius: 16, padding: 24, overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF5050' }} />
@@ -931,8 +931,8 @@ export default function NexLogExpress() {
       <section id="recursos" className="lp-section">
         <div className="lp-title">
           <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 8 }}>PASSO A PASSO</div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#F4F7F8', marginBottom: 10 }}>Como funciona a NEXLOG</h2>
-          <p style={{ fontSize: 15, color: '#7C8A96', maxWidth: 500, margin: '0 auto', lineHeight: 1.6 }}>Em 4 passos simples, você gerencia suas rotas e fretes como nunca.</p>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#F4F7F8', marginBottom: 12 }}>Como funciona a NEXLOG</h2>
+          <p style={{ fontSize: 16, color: '#7C8A96', maxWidth: 600, margin: '0 auto', lineHeight: 1.7 }}>Em 4 passos simples, você gerencia suas rotas e fretes como nunca.</p>
         </div>
         <div className="lp-grid-4">
           {[
@@ -944,8 +944,8 @@ export default function NexLogExpress() {
             <div key={i} style={{ background: '#10161D', border: '1px solid #1E2731', borderRadius: 14, padding: 24, position: 'relative' }}>
               <div style={{ position: 'absolute', top: 16, right: 16, fontFamily: "'IBM Plex Mono', monospace", fontSize: 48, fontWeight: 800, color: '#6E2FD9', opacity: 0.1 }}>{s.step}</div>
               <div style={{ fontSize: 32, marginBottom: 14 }}>{s.icon}</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#F4F7F8', marginBottom: 8 }}>{s.title}</div>
-              <div style={{ fontSize: 13, color: '#7C8A96', lineHeight: 1.6 }}>{s.desc}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#F4F7F8', marginBottom: 8 }}>{s.title}</div>
+              <div style={{ fontSize: 14, color: '#7C8A96', lineHeight: 1.7 }}>{s.desc}</div>
             </div>
           ))}
         </div>
@@ -955,8 +955,8 @@ export default function NexLogExpress() {
       <section id="features" className="lp-section">
         <div className="lp-title">
           <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#FF7A1A', marginBottom: 8 }}>FUNCIONALIDADES</div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#F4F7F8', marginBottom: 10 }}>Tudo que você precisa</h2>
-          <p style={{ fontSize: 15, color: '#7C8A96', maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>Ferramentas profissionais para transportadores e motoristas autônomos.</p>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#F4F7F8', marginBottom: 12 }}>Tudo que você precisa</h2>
+          <p style={{ fontSize: 16, color: '#7C8A96', maxWidth: 600, margin: '0 auto', lineHeight: 1.7 }}>Ferramentas profissionais para transportadores e motoristas autônomos.</p>
         </div>
         <div className="lp-grid-2">
           {[
@@ -969,8 +969,8 @@ export default function NexLogExpress() {
           ].map((f, i) => (
             <div key={i} style={{ background: '#10161D', border: '1px solid #1E2731', borderRadius: 14, padding: 24, borderLeft: `3px solid ${f.color}` }}>
               <div style={{ fontSize: 28, marginBottom: 10 }}>{f.icon}</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#F4F7F8', marginBottom: 8 }}>{f.title}</div>
-              <div style={{ fontSize: 13, color: '#7C8A96', lineHeight: 1.6 }}>{f.desc}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#F4F7F8', marginBottom: 8 }}>{f.title}</div>
+              <div style={{ fontSize: 14, color: '#7C8A96', lineHeight: 1.7 }}>{f.desc}</div>
             </div>
           ))}
         </div>
@@ -980,9 +980,9 @@ export default function NexLogExpress() {
       <section className="lp-section">
         <div style={{ background: 'linear-gradient(135deg, #10161D, rgba(110,47,217,0.05))', border: '1px solid #1E2731', borderRadius: 20, padding: '48px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 40, alignItems: 'center' }}>
           <div>
-            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 12 }}>DIFERENCIAIS</div>
-            <h2 style={{ fontSize: 26, fontWeight: 700, color: '#F4F7F8', marginBottom: 14, lineHeight: 1.2 }}>Por que escolher a NEXLOG?</h2>
-            <p style={{ fontSize: 14, color: '#7C8A96', lineHeight: 1.7, marginBottom: 20 }}>
+            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 12 }}>DIFERENCIAIS</div>
+            <h2 style={{ fontSize: 34, fontWeight: 700, color: '#F4F7F8', marginBottom: 16, lineHeight: 1.2 }}>Por que escolher a NEXLOG?</h2>
+            <p style={{ fontSize: 16, color: '#7C8A96', lineHeight: 1.7, marginBottom: 24 }}>
               Somos a plataforma mais completa para gestão logística. Do roteirizador ao marketplace de fretes, tudo que você precisa em um só lugar.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1014,8 +1014,8 @@ export default function NexLogExpress() {
       <section id="depoimentos" className="lp-section">
         <div className="lp-title">
           <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#FF7A1A', marginBottom: 8 }}>DEPOIMENTOS</div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#F4F7F8', marginBottom: 10 }}>O que nossos clientes dizem</h2>
-          <p style={{ fontSize: 15, color: '#7C8A96', maxWidth: 500, margin: '0 auto', lineHeight: 1.6 }}>Centenas de transportadores e motoristas confiam na NEXLOG.</p>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#F4F7F8', marginBottom: 12 }}>O que nossos clientes dizem</h2>
+          <p style={{ fontSize: 16, color: '#7C8A96', maxWidth: 600, margin: '0 auto', lineHeight: 1.7 }}>Centenas de transportadores e motoristas confiam na NEXLOG.</p>
         </div>
         <div className="lp-grid-3">
           {[
@@ -1046,8 +1046,8 @@ export default function NexLogExpress() {
       <section id="precos" className="lp-section">
         <div className="lp-title">
           <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 8 }}>PLANOS</div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#F4F7F8', marginBottom: 10 }}>Escolha o plano ideal</h2>
-          <p style={{ fontSize: 15, color: '#7C8A96', maxWidth: 500, margin: '0 auto', lineHeight: 1.6 }}>Comece grátis e escale conforme sua necessidade.</p>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#F4F7F8', marginBottom: 12 }}>Escolha o plano ideal</h2>
+          <p style={{ fontSize: 16, color: '#7C8A96', maxWidth: 600, margin: '0 auto', lineHeight: 1.7 }}>Comece grátis e escale conforme sua necessidade.</p>
         </div>
         <div className="lp-grid-3">
           {[
@@ -1083,7 +1083,7 @@ export default function NexLogExpress() {
       <section className="lp-section">
         <div className="lp-title">
           <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#FF7A1A', marginBottom: 8 }}>PERGUNTAS FREQUENTES</div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#F4F7F8', marginBottom: 10 }}>Dúvidas? Respostas.</h2>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#F4F7F8', marginBottom: 12 }}>Dúvidas? Respostas.</h2>
         </div>
         <div style={{ maxWidth: 700, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[
@@ -1100,11 +1100,11 @@ export default function NexLogExpress() {
       </section>
 
       {/* CTA Final */}
-      <section className="lp-section" style={{ maxWidth: 800 }}>
-        <div style={{ background: 'linear-gradient(135deg, rgba(110,47,217,0.12), rgba(255,122,26,0.08))', border: '1px solid rgba(110,47,217,0.3)', borderRadius: 20, padding: '56px 32px', textAlign: 'center' }}>
-          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 12 }}>COMECE AGORA</div>
-          <h2 style={{ fontSize: 30, fontWeight: 700, color: '#F4F7F8', marginBottom: 14 }}>Pronto para otimizar sua logística?</h2>
-          <p style={{ fontSize: 15, color: '#7C8A96', marginBottom: 28, lineHeight: 1.6, maxWidth: 500, margin: '0 auto 28px' }}>
+      <section className="lp-section">
+        <div style={{ background: 'linear-gradient(135deg, rgba(110,47,217,0.12), rgba(255,122,26,0.08))', border: '1px solid rgba(110,47,217,0.3)', borderRadius: 20, padding: '64px 48px', textAlign: 'center' }}>
+          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#9B5CF0', marginBottom: 12 }}>COMECE AGORA</div>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#F4F7F8', marginBottom: 16 }}>Pronto para otimizar sua logística?</h2>
+          <p style={{ fontSize: 16, color: '#7C8A96', marginBottom: 32, lineHeight: 1.7, maxWidth: 600, margin: '0 auto 32px' }}>
             Crie sua conta gratuitamente e descubra como a NEXLOG pode transformar a gestão da sua frota.
           </p>
           <div className="lp-hero-btns">
@@ -1124,7 +1124,7 @@ export default function NexLogExpress() {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid #1E2731', padding: '32px 24px', background: '#10161D' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 32, marginBottom: 24 }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 40, marginBottom: 24 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <img src="/logo.jpg" alt="NEXLOG" style={{ height: 72, width: 'auto', borderRadius: 6 }} />
