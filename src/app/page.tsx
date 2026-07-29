@@ -1,22 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useJsApiLoader, GoogleMap, Marker, Polyline } from '@react-google-maps/api';
-
-const GMAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '';
-
-const containerStyle = { width: '100%', height: '100%' };
-
-const darkMapStyle: google.maps.MapTypeStyle[] = [
-  { elementType: 'geometry', stylers: [{ color: '#1D0F38' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1D0F38' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#8A7AA8' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2D1B4E' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#E8ECF0' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0F0720' }] },
-  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#251540' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#251540' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-];
+import 'leaflet/dist/leaflet.css';
 
 type Page = 'landing' | 'dashboard' | 'roteirizador' | 'calculadora' | 'clientes' | 'historico' | 'pedagios' | 'marketplace' | 'rastreamento';
 type MkPage = 'fretes' | 'postar' | 'planos' | 'meus' | 'mkroteirizador';
@@ -366,7 +350,13 @@ export default function NexLogExpress() {
   const [userPlan, setUserPlan] = useState<'gratis' | 'profissional' | 'premium'>('gratis');
   const [freightSearch, setFreightSearch] = useState('');
 
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markersLayerRef = useRef<any>(null);
+  const polylineLayerRef = useRef<any>(null);
+  const trackingMapRef = useRef<HTMLDivElement>(null);
+  const trackingMapInstanceRef = useRef<any>(null);
+  const trackingPolylineRef = useRef<any>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -395,55 +385,133 @@ export default function NexLogExpress() {
   }, []);
   useEffect(() => { localStorage.setItem('nexlog_tolls', JSON.stringify(tollRoutes)); }, [tollRoutes]);
 
-  const { isLoaded: gmapsLoaded } = useJsApiLoader({ googleMapsApiKey: GMAPS_KEY || '' });
-
   useEffect(() => {
-    if (!gmapsLoaded) return;
-    if (currentPage === 'roteirizador' && !pontoPartida && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(pos => {
+    const doAutoDetect = async (setter: (v: string) => void) => {
+      if (!('geolocation' in navigator)) return;
+      navigator.geolocation.getCurrentPosition(async pos => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        if (typeof google !== 'undefined' && google.maps?.Geocoder) {
-          new google.maps.Geocoder().geocode({ location: { lat, lng } }, (results, status) => {
-            if (status === 'OK' && results && results.length > 0) {
-              setPontoPartida(results[0].formatted_address);
-            } else {
-              setPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
-            }
-          });
-        } else {
-          setPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
-        }
+        try {
+          const resp = await fetch('https://nominatim.openstreetmap.org/reverse?' + new URLSearchParams({ lat: String(lat), lon: String(lng), format: 'json' }).toString(),
+            { headers: { 'User-Agent': 'NexLogExpress/1.0 (contato@nexlog.com.br)' } });
+          const data = await resp.json();
+          setter(data.display_name || lat.toFixed(6) + ', ' + lng.toFixed(6));
+        } catch { setter(lat.toFixed(6) + ', ' + lng.toFixed(6)); }
       }, () => {});
-    }
-    if (currentPage === 'calculadora' && !calcPontoPartida && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        if (typeof google !== 'undefined' && google.maps?.Geocoder) {
-          new google.maps.Geocoder().geocode({ location: { lat, lng } }, (results, status) => {
-            if (status === 'OK' && results && results.length > 0) {
-              setCalcPontoPartida(results[0].formatted_address);
-            } else {
-              setCalcPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
-            }
-          });
-        } else {
-          setCalcPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
-        }
-      }, () => {});
-    }
-  }, [currentPage, gmapsLoaded]);
-
-  useEffect(() => {
-    if (mapRef.current && geocodedCoords.length > 0) fitMapBounds(mapRef.current);
-  }, [geocodedCoords]);
+    };
+    if (currentPage === 'roteirizador' && !pontoPartida) doAutoDetect(setPontoPartida);
+    if (currentPage === 'calculadora' && !calcPontoPartida) doAutoDetect(setCalcPontoPartida);
+  }, [currentPage]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const ts = document.createElement('style');
+    ts.textContent = '.dark-tooltip{background:#1D0F38!important;color:#E8ECF0!important;border:1px solid #251540!important;border-radius:8px!important;padding:6px 10px!important;font-size:12px!important;font-family:inherit!important;box-shadow:0 4px 12px rgba(0,0,0,0.4)!important}.dark-tooltip::before{border-top-color:#251540!important}';
+    document.head.appendChild(ts);
     const style = document.createElement('style');
     style.textContent = '@media print{body>*{display:none!important}.budget-print{display:block!important;position:fixed;top:0;left:0;right:0;background:white!important;padding:40px!important;z-index:999999;box-sizing:border-box;width:100%}.budget-print *{color:#111!important;border-color:#ddd!important;background:transparent!important}}';
     document.head.appendChild(style);
-    return () => { if (style.parentNode) style.parentNode.removeChild(style); };
+    return () => { if (ts.parentNode) ts.parentNode.removeChild(ts); if (style.parentNode) style.parentNode.removeChild(style); };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !mapRef.current || mapInstanceRef.current) return;
+    try {
+      const L = require('leaflet');
+      const map = L.map(mapRef.current, { center: [-15.78, -47.93], zoom: 5, zoomControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+      L.control.zoom({ position: 'topright' }).addTo(map);
+      mapInstanceRef.current = map;
+      markersLayerRef.current = L.layerGroup().addTo(map);
+      polylineLayerRef.current = L.layerGroup().addTo(map);
+    } catch {}
+    return () => { if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; } };
+  }, []);
+
+  useEffect(() => {
+    if (currentPage === 'roteirizador' && mapInstanceRef.current) {
+      const t = setTimeout(() => { if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize(); }, 150);
+      return () => clearTimeout(t);
+    }
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markersLayerRef.current) return;
+    if (geocodedCoords.length === 0) return;
+    try {
+      const L = require('leaflet');
+      markersLayerRef.current.clearLayers();
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const bounds = L.latLngBounds();
+      geocodedCoords.forEach((coord, i) => {
+        const icon = L.divIcon({
+          className: '',
+          html: '<div style="width:34px;height:34px;border-radius:50%;background:#6E2FD9;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;border:3px solid #3B1063;box-shadow:0 2px 10px rgba(110,47,217,0.5);font-family:system-ui">' + (letters[i] || String(i + 1)) + '</div>',
+          iconSize: [34, 34],
+          iconAnchor: [17, 17],
+        });
+        const marker = L.marker([coord.lat, coord.lng], { icon });
+        marker.bindTooltip(allAddresses[i] || ('Ponto ' + letters[i]), { className: 'dark-tooltip' });
+        markersLayerRef.current.addLayer(marker);
+        bounds.extend([coord.lat, coord.lng]);
+      });
+      if (geocodedCoords.length === 1) {
+        mapInstanceRef.current.setView([geocodedCoords[0].lat, geocodedCoords[0].lng], 14);
+      } else {
+        mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+      }
+    } catch {}
+  }, [geocodedCoords]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !polylineLayerRef.current) return;
+    if (!routeResult || !routeResult.coords || routeResult.coords.length < 2) return;
+    try {
+      const L = require('leaflet');
+      polylineLayerRef.current.clearLayers();
+      const latlngs = routeResult.coords.map((c: { lat: number; lng: number }) => [c.lat, c.lng]);
+      L.polyline(latlngs, { color: '#FF7A1A', weight: 4, opacity: 0.9 }).addTo(polylineLayerRef.current);
+    } catch {}
+  }, [routeResult]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !trackingMapRef.current || trackingMapInstanceRef.current) return;
+    if (currentPage !== 'rastreamento') return;
+    try {
+      const L = require('leaflet');
+      const map = L.map(trackingMapRef.current, { center: [-15.78, -47.93], zoom: 5, zoomControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+      L.control.zoom({ position: 'topright' }).addTo(map);
+      trackingMapInstanceRef.current = map;
+      trackingPolylineRef.current = L.layerGroup().addTo(map);
+    } catch {}
+    return () => { if (trackingMapInstanceRef.current) { trackingMapInstanceRef.current.remove(); trackingMapInstanceRef.current = null; } };
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (!trackingMapInstanceRef.current || !trackingPos) return;
+    try {
+      const L = require('leaflet');
+      trackingMapInstanceRef.current.setView([trackingPos.lat, trackingPos.lng], 15);
+      if (trackingMapInstanceRef.current._marker) {
+        trackingMapInstanceRef.current._marker.setLatLng([trackingPos.lat, trackingPos.lng]);
+      } else {
+        const marker = L.circleMarker([trackingPos.lat, trackingPos.lng], {
+          radius: 10, fillColor: '#4285F4', color: '#FFF', weight: 3, fillOpacity: 1,
+        }).addTo(trackingMapInstanceRef.current);
+        trackingMapInstanceRef.current._marker = marker;
+      }
+    } catch {}
+  }, [trackingPos]);
+
+  useEffect(() => {
+    if (!trackingMapInstanceRef.current || !trackingPolylineRef.current || trackingHistory.length < 2) return;
+    try {
+      const L = require('leaflet');
+      trackingPolylineRef.current.clearLayers();
+      const latlngs = trackingHistory.map(p => [p.lat, p.lng]);
+      L.polyline(latlngs, { color: '#4285F4', weight: 3, opacity: 0.7 }).addTo(trackingPolylineRef.current);
+    } catch {}
+  }, [trackingHistory]);
 
   const navItems = [
     { id: 'dashboard' as Page, label: 'Dashboard', icon: 'grid' },
@@ -536,18 +604,6 @@ export default function NexLogExpress() {
   };
 
   const allAddresses = useMemo(() => [pontoPartida, ...addresses].filter(Boolean), [pontoPartida, addresses]);
-
-  const fitMapBounds = (map: google.maps.Map) => {
-    if (geocodedCoords.length === 0) return;
-    const bounds = new window.google.maps.LatLngBounds();
-    geocodedCoords.forEach(c => bounds.extend(c));
-    if (geocodedCoords.length === 1) {
-      map.setCenter(geocodedCoords[0]);
-      map.setZoom(14);
-    } else {
-      map.fitBounds(bounds, 50);
-    }
-  };
 
   const addAddress = () => setAddresses([...addresses, '']);
   const removeAddress = (index: number) => { if (addresses.length > 2) setAddresses(addresses.filter((_, i) => i !== index)); };
@@ -1343,34 +1399,7 @@ export default function NexLogExpress() {
           </div>
         </div>
         <div style={{ backgroundColor: '#1D0F38', borderRadius: 14, border: '1px solid #251540', overflow: 'hidden', minHeight: isMobile ? 240 : 450, position: 'relative' }}>
-          {gmapsLoaded ? (
-            <GoogleMap
-              mapContainerStyle={{ width: '100%', height: isMobile ? 240 : 450 }}
-              center={{ lat: -15.78, lng: -47.93 }}
-              zoom={5}
-              options={{ styles: darkMapStyle, zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: false }}
-              onLoad={map => { mapRef.current = map; if (geocodedCoords.length > 0) fitMapBounds(map); }}
-            >
-              {geocodedCoords.map((coord, i) => (
-                <Marker
-                  key={i}
-                  position={coord}
-                  label={{ text: String(i + 1), color: '#fff', fontSize: '12px', fontWeight: '700' }}
-                  title={allAddresses[i] || 'Ponto ' + (i + 1)}
-                />
-              ))}
-              {routeResult && routeResult.coords.length > 1 && (
-                <Polyline
-                  path={routeResult.coords}
-                  options={{ strokeColor: '#FF7A1A', strokeWeight: 4, strokeOpacity: 0.9 }}
-                />
-              )}
-            </GoogleMap>
-          ) : (
-            <div style={{ width: '100%', height: isMobile ? 240 : 450, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8A7AA8' }}>
-              Carregando mapa...
-            </div>
-          )}
+          <div ref={mapRef} style={{ width: '100%', height: isMobile ? 240 : 450 }} />
           {routeResult && (
             <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12, display: 'flex', gap: 8 }}>
               <a href={getGoogleMapsUrl(routeResult, pontoPartida)} target="_blank" rel="noopener noreferrer"
@@ -1759,39 +1788,7 @@ export default function NexLogExpress() {
         )}
       </div>
       <div style={{ backgroundColor: '#1D0F38', borderRadius: 14, border: '1px solid #251540', overflow: 'hidden', minHeight: isMobile ? 300 : 450, position: 'relative' }}>
-        {gmapsLoaded ? (
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: isMobile ? 300 : 450 }}
-            center={trackingPos || { lat: -15.78, lng: -47.93 }}
-            zoom={trackingPos ? 15 : 5}
-            options={{ styles: darkMapStyle, zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: false }}
-          >
-            {trackingPos && (
-              <Marker
-                position={trackingPos}
-                icon={{
-                  path: window.google?.maps?.SymbolPath?.CIRCLE,
-                  scale: 10,
-                  fillColor: '#4285F4',
-                  fillOpacity: 1,
-                  strokeColor: '#FFF',
-                  strokeWeight: 3,
-                } as any}
-                label={{ text: '●', color: '#4285F4', fontSize: '24px' }}
-              />
-            )}
-            {trackingHistory.length > 1 && (
-              <Polyline
-                path={trackingHistory.map(p => ({ lat: p.lat, lng: p.lng }))}
-                options={{ strokeColor: '#4285F4', strokeWeight: 3, strokeOpacity: 0.7 }}
-              />
-            )}
-          </GoogleMap>
-        ) : (
-          <div style={{ width: '100%', height: isMobile ? 300 : 450, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8A7AA8' }}>
-            Carregando mapa...
-          </div>
-        )}
+        <div ref={trackingMapRef} style={{ width: '100%', height: isMobile ? 300 : 450 }} />
       </div>
       {trackingHistory.length > 0 && (
         <div style={{ marginTop: 12, backgroundColor: '#1D0F38', borderRadius: 14, border: '1px solid #251540', padding: 16 }}>
