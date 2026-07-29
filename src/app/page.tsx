@@ -135,15 +135,22 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   if (coordMatch) {
     return { lat: parseFloat(coordMatch[1]), lng: parseFloat(coordMatch[2]) };
   }
-  try {
-    const addr = address.replace(/ - /g, ', ').replace(/,+/g, ',').trim() + ', Brazil';
-    const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY);
-    const data = await resp.json();
-    if (data.status === 'OK' && data.results.length > 0) {
-      return { lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng };
-    }
-    return null;
-  } catch { return null; }
+  const fmt = (s: string) => s.replace(/ - /g, ', ').replace(/,+/g, ',').trim();
+  const attempts = [
+    fmt(address) + ', Brazil',
+    fmt(address),
+    trimmed.replace(/,?\s*\d+.*/, '').trim() + ', Brazil',
+  ];
+  for (const addr of attempts) {
+    try {
+      const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY);
+      const data = await resp.json();
+      if (data.status === 'OK' && data.results.length > 0) {
+        return { lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng };
+      }
+    } catch {}
+  }
+  return null;
 }
 
 async function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
