@@ -815,7 +815,7 @@ export default function NexLogExpress() {
       <style>{`
         @keyframes pulse-ring { 0% { opacity: 0.4; transform: scale(0.7); } 70% { opacity: 0; transform: scale(1.5); } 100% { opacity: 0; transform: scale(1.5); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .lp-section { padding: 40px 24px 80px; max-width: 1100px; margin: 0 0 0 auto; }
+        .lp-section { padding: 40px 24px 80px; max-width: 1200px; margin: 0 auto; }
         .lp-title { text-align: center; margin-bottom: 48px; }
         .lp-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16; }
         .lp-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20; }
@@ -869,7 +869,7 @@ export default function NexLogExpress() {
       </section>
 
       {/* Dashboard Preview */}
-      <section style={{ maxWidth: 900, margin: '0 0 0 auto', padding: '0 24px 60px' }}>
+      <section style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px 60px' }}>
         <div style={{ background: '#10161D', border: '1px solid #1E2731', borderRadius: 16, padding: 24, overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF5050' }} />
