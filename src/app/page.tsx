@@ -129,38 +129,71 @@ function generateBudgetNumber(): string {
   return 'ORC-' + d + '-' + r;
 }
 
-async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  const trimmed = address.trim();
-  if (/^-?\d+\.?\d*\s*[,;]\s*-?\d+\.?\d*$/.test(trimmed)) {
-    const parts = trimmed.split(/[,;]/);
-    return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
-  }
-  const attempts = [
-    trimmed + ', Brazil',
-    trimmed.replace(/,\s*\d+\s*/, '').trim() + ', Brazil',
-  ];
-  for (const addr of attempts) {
-    try {
-      const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY);
-      const data = await resp.json();
-      if (data.status === 'OK' && data.results.length > 0) {
-        return { lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng };
+function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+  return new Promise(resolve => {
+    const trimmed = address.trim();
+    if (/^-?\d+\.?\d*\s*[,;]\s*-?\d+\.?\d*$/.test(trimmed)) {
+      const parts = trimmed.split(/[,;]/);
+      resolve({ lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) });
+      return;
+    }
+    const geocoder = typeof google !== 'undefined' && google.maps?.Geocoder ? new google.maps.Geocoder() : null;
+    const tryGeocode = (addr: string) => {
+      if (geocoder) {
+        geocoder.geocode({ address: addr }, (results, status) => {
+          if (status === 'OK' && results && results.length > 0) {
+            resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
+          } else {
+            const fallback = trimmed.replace(/,\s*\d+\s*/, '').trim();
+            if (addr !== fallback + ', Brazil') {
+              tryGeocode(fallback + ', Brazil');
+            } else {
+              resolve(null);
+            }
+          }
+        });
+      } else {
+        fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY)
+          .then(r => r.json())
+          .then(data => {
+            if (data.status === 'OK' && data.results.length > 0) {
+              resolve({ lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng });
+            } else {
+              const fallback = trimmed.replace(/,\s*\d+\s*/, '').trim();
+              if (addr !== fallback + ', Brazil') {
+                tryGeocode(fallback + ', Brazil');
+              } else {
+                resolve(null);
+              }
+            }
+          })
+          .catch(() => resolve(null));
       }
-    } catch {}
-  }
-  return null;
+    };
+    tryGeocode(trimmed + ', Brazil');
+  });
 }
 
-async function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
-  try {
+function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
+  return new Promise(resolve => {
     const fmt = (s: string) => s.replace(/ - /g, ', ');
-    const wp = waypoints.map(w => 'via:' + encodeURIComponent(fmt(w))).join('|');
-    const url = 'https://maps.googleapis.com/maps/api/directions/json?origin=' + encodeURIComponent(fmt(origin)) + '&destination=' + encodeURIComponent(fmt(destination)) + (wp ? '&waypoints=optimize:false|' + wp : '') + '&key=' + GMAPS_KEY + '&region=br&language=pt-BR';
-    const resp = await fetch(url);
-    const data = await resp.json();
-    if (data.status === 'OK' && data.routes.length > 0) return data.routes[0];
-    return null;
-  } catch { return null; }
+    if (typeof google !== 'undefined' && google.maps?.DirectionsService) {
+      const request: any = { origin: fmt(origin), destination: fmt(destination), travelMode: google.maps.TravelMode.DRIVING };
+      if (waypoints.length > 0) {
+        request.waypoints = waypoints.map(w => ({ location: fmt(w), stopover: true }));
+      }
+      new google.maps.DirectionsService().route(request, (result, status) => {
+        if (status === 'OK' && result) resolve(result);
+        else resolve(null);
+      });
+    } else {
+      const wp = waypoints.map(w => 'via:' + encodeURIComponent(fmt(w))).join('|');
+      fetch('https://maps.googleapis.com/maps/api/directions/json?origin=' + encodeURIComponent(fmt(origin)) + '&destination=' + encodeURIComponent(fmt(destination)) + (wp ? '&waypoints=optimize:false|' + wp : '') + '&key=' + GMAPS_KEY + '&region=br&language=pt-BR')
+        .then(r => r.json())
+        .then(data => { resolve(data.status === 'OK' && data.routes.length > 0 ? data.routes[0] : null); })
+        .catch(() => resolve(null));
+    }
+  });
 }
 
 
