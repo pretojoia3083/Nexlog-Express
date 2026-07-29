@@ -2354,8 +2354,24 @@ export default function NexLogExpress() {
             <span style={{ marginLeft: 'auto', fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'linear-gradient(135deg,#FF7A1A,#FFB627)', color: '#FFF', fontWeight: 700 }}>NOVO</span>
           </button>
         </nav>
-        <div style={{ padding: '16px 20px', borderTop: '1px solid #251540', fontSize: 11, color: '#8A7AA8' }}>
-          v1.0.0 &middot; NEXLOG EXPRESS
+        <div style={{ padding: '16px 20px', borderTop: '1px solid #251540' }}>
+          {session && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#9B5CF0,#6E2FD9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: 12, fontWeight: 700 }}>
+                {session.nome?.charAt(0).toUpperCase() || '?'}
+              </div>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <div style={{ fontSize: 12, color: '#E8ECF0', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{session.nome}</div>
+                <div style={{ fontSize: 10, color: '#8A7AA8' }}>{session.plano || 'gratis'}</div>
+              </div>
+            </div>
+          )}
+          <button onClick={handleLogout}
+            style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #251540', backgroundColor: 'transparent', color: '#EF4444', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sair
+          </button>
+          <div style={{ marginTop: 10, fontSize: 11, color: '#5A4A78', textAlign: 'center' }}>v1.0.0 &middot; NEXLOG EXPRESS</div>
         </div>
       </aside>
       <main style={{ flex: 1, marginTop: isMobile ? 48 : 0, overflowY: 'auto', minHeight: isMobile ? 'calc(100vh - 48px)' : '100vh' }}>
