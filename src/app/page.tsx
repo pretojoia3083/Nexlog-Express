@@ -130,20 +130,17 @@ function generateBudgetNumber(): string {
 }
 
 async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+  const trimmed = address.trim();
+  const coordMatch = trimmed.match(/^(-?\d+\.?\d*)\s*[,;]\s*(-?\d+\.?\d*)$/);
+  if (coordMatch) {
+    return { lat: parseFloat(coordMatch[1]), lng: parseFloat(coordMatch[2]) };
+  }
   try {
     const addr = address.replace(/ - /g, ', ').replace(/,+/g, ',').trim() + ', Brazil';
     const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY);
     const data = await resp.json();
     if (data.status === 'OK' && data.results.length > 0) {
       return { lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng };
-    }
-    if (data.status === 'ZERO_RESULTS') {
-      const simple = address.split(' - ')[0].replace(/,?\s*\d+/, '').trim() + ', Brazil';
-      const resp2 = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(simple) + '&key=' + GMAPS_KEY);
-      const data2 = await resp2.json();
-      if (data2.status === 'OK' && data2.results.length > 0) {
-        return { lat: data2.results[0].geometry.location.lat, lng: data2.results[0].geometry.location.lng };
-      }
     }
     return null;
   } catch { return null; }
