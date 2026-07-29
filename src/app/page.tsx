@@ -252,6 +252,8 @@ const ICON_PATHS: Record<string, string> = {
   route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
   target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
   gps: '<path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6a6 6 0 0 1 6 6"/><path d="M12 10a2 2 0 0 1 2 2"/><circle cx="12" cy="12" r="1"/>',
+  eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  'eye-off': '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
 };
 
 function Icon({ name, size = 20, color = 'currentColor' }: { name: string; size?: number; color?: string }) {
@@ -342,6 +344,7 @@ export default function NexLogExpress() {
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
   const [authForm, setAuthForm] = useState({ email: '', senha: '', nome: '', telefone: '', cnpj: '' });
   const [authError, setAuthError] = useState('');
+  const [showSenha, setShowSenha] = useState(false);
   const [mkPage, setMkPage] = useState<MkPage>('fretes');
   const [fretes, setFretes] = useState<Freight[]>([]);
   const [freightForm, setFreightForm] = useState({ origem: '', destino: '', tipo: 'Carga Seca', peso: '', valor: '', coleta: '', entrega: '', contato: '', observacao: '' });
@@ -2051,8 +2054,13 @@ export default function NexLogExpress() {
         </div>
         <div style={{ marginBottom: 14 }}>
           <label style={{ display: 'block', fontSize: 12, color: '#8A7AA8', marginBottom: 4 }}>Senha *</label>
-          <input type="password" value={authForm.senha} onChange={e => setAuthForm({ ...authForm, senha: e.target.value })} placeholder="Sua senha"
-            style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#E8ECF0', fontSize: 14, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+          <div style={{ position: 'relative' }}>
+            <input type={showSenha ? 'text' : 'password'} value={authForm.senha} onChange={e => setAuthForm({ ...authForm, senha: e.target.value })} placeholder="Sua senha"
+              style={{ width: '100%', padding: '10px 40px 10px 14px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#E8ECF0', fontSize: 14, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+            <button type="button" onClick={() => setShowSenha(!showSenha)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: '#8A7AA8' }}>
+              <Icon name={showSenha ? 'eye-off' : 'eye'} size={18} />
+            </button>
+          </div>
         </div>
         {authTab === 'register' && (
           <>
