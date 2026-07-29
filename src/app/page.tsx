@@ -442,6 +442,10 @@ export default function NexLogExpress() {
   const [userPlan, setUserPlan] = useState<'gratis' | 'profissional' | 'premium'>('gratis');
   const [freightSearch, setFreightSearch] = useState('');
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showOcrModal, setShowOcrModal] = useState(false);
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [ocrImage, setOcrImage] = useState<string | null>(null);
+  const [ocrResult, setOcrResult] = useState<string | null>(null);
   const deferredPromptRef = useRef<any>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
@@ -707,6 +711,45 @@ export default function NexLogExpress() {
   };
 
   const selectPlan = (p: 'gratis' | 'profissional' | 'premium') => { setMkPlan(p); };
+
+  const handleOcrImage = async (file: File) => {
+    setOcrProcessing(true);
+    setOcrResult(null);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const imgData = e.target?.result as string;
+      setOcrImage(imgData);
+      try {
+        const Tesseract = await import('tesseract.js');
+        const { data } = await Tesseract.recognize(imgData, 'por', { logger: (m: any) => {} });
+        setOcrResult(data.text);
+        const linhas = data.text.split('\n').map((l: string) => l.trim()).filter(Boolean);
+        const enderecos = linhas.filter((l: string) => /^(rua|av|avenida|rod|rodovia|estrada|travessa|alameda|praça|pracoa)/i.test(l) || /\d{5}-?\d{3}/.test(l) || l.includes(','));
+
+        // Try to find origin (remetente) and destination (destinatario) addresses
+        let origem = '', destino = '';
+        for (let i = 0; i < linhas.length; i++) {
+          const l = linhas[i].toLowerCase();
+          if (/(remetente|origem|expedidor)/i.test(l) && i + 1 < linhas.length) {
+            origem = linhas[i + 1];
+          }
+          if (/(destinatario|destino|recebedor)/i.test(l) && i + 1 < linhas.length) {
+            destino = linhas[i + 1];
+          }
+        }
+        if (!origem && enderecos.length > 0) origem = enderecos[0];
+        if (!destino && enderecos.length > 1) destino = enderecos[1];
+
+        if (origem && destino) {
+          setPontoPartida(origem);
+          setAddresses([destino]);
+          setShowOcrModal(false);
+        }
+      } catch (err) { setOcrResult('Erro ao processar imagem'); }
+      setOcrProcessing(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const confirmPlan = () => {
     if (!session) return;
@@ -1469,7 +1512,14 @@ export default function NexLogExpress() {
   const renderRoteirizador = () => (
     <div>
       <h1 className="page-title" style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Roteirizador</h1>
-      <p className="page-subtitle" style={{ color: '#8A7AA8', marginBottom: 24 }}>Planeje sua rota de forma inteligente</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+        <p className="page-subtitle" style={{ color: '#8A7AA8', margin: 0 }}>Planeje sua rota de forma inteligente</p>
+        <button onClick={() => setShowOcrModal(true)}
+          style={{ marginLeft: 'auto', padding: '8px 14px', borderRadius: 8, border: '1px solid #251540', background: 'transparent', color: '#9B5CF0', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Ler Documento
+        </button>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '380px 1fr', gap: 20, marginBottom: 24 }}>
         <div style={{ backgroundColor: '#1D0F38', borderRadius: 14, border: '1px solid #251540', padding: isMobile ? 16 : 24, height: 'fit-content' }}>
           <div style={{ marginBottom: 16 }}>
@@ -2531,6 +2581,63 @@ export default function NexLogExpress() {
       {showTollModal && renderTollModal()}
       {budgetModalOpen && renderBudgetModal()}
       {showAuthModal && renderAuthModal()}
+      {showOcrModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ backgroundColor: '#1D0F38', borderRadius: 16, border: '1px solid #251540', padding: 24, maxWidth: 500, width: '100%' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 16px', color: '#E8ECF0', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9B5CF0" strokeWidth="2" strokeLinecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Ler Documento (CTe)
+            </h3>
+            {!ocrImage ? (
+              <>
+                <p style={{ fontSize: 13, color: '#8A7AA8', marginBottom: 20 }}>Tire uma foto do CTe ou envie uma imagem para extrair os endereços automaticamente.</p>
+                <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 40, border: '2px dashed #251540', borderRadius: 12, cursor: 'pointer', color: '#8A7AA8', fontSize: 13 }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span style={{ fontWeight: 600, color: '#9B5CF0' }}>Clique para selecionar foto</span>
+                  <span>ou tire uma foto agora</span>
+                  <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleOcrImage(f); }} />
+                </label>
+                <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+                  <input type="file" accept="image/*" id="ocr-upload" style={{ display: 'none' }}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleOcrImage(f); }} />
+                  <button onClick={() => document.getElementById('ocr-upload')?.click()}
+                    style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #251540', background: 'transparent', color: '#E8ECF0', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
+                    Enviar da galeria
+                  </button>
+                  <button onClick={() => setShowOcrModal(false)}
+                    style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: '#EF4444', color: '#FFF', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            ) : ocrProcessing ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <div style={{ width: 40, height: 40, border: '3px solid #251540', borderTopColor: '#9B5CF0', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                <div style={{ color: '#8A7AA8', fontSize: 13 }}>Processando imagem...</div>
+              </div>
+            ) : (
+              <div>
+                {ocrResult && ocrResult !== 'Erro ao processar imagem' ? (
+                  <div style={{ color: '#00E676', fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Enderecos extraidos com sucesso!
+                  </div>
+                ) : (
+                  <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 16 }}>
+                    {ocrResult || 'Erro ao processar imagem'}
+                  </div>
+                )}
+                <button onClick={() => { setShowOcrModal(false); setOcrImage(null); setOcrResult(null); }}
+                  style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#251540', color: '#E8ECF0', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
+                  Fechar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
