@@ -131,15 +131,13 @@ function generateBudgetNumber(): string {
 
 async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   const trimmed = address.trim();
-  const coordMatch = trimmed.match(/^(-?\d+\.?\d*)\s*[,;]\s*(-?\d+\.?\d*)$/);
-  if (coordMatch) {
-    return { lat: parseFloat(coordMatch[1]), lng: parseFloat(coordMatch[2]) };
+  if (/^-?\d+\.?\d*\s*[,;]\s*-?\d+\.?\d*$/.test(trimmed)) {
+    const parts = trimmed.split(/[,;]/);
+    return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
   }
-  const fmt = (s: string) => s.replace(/ - /g, ', ').replace(/,+/g, ',').trim();
   const attempts = [
-    fmt(address) + ', Brazil',
-    fmt(address),
-    trimmed.replace(/,?\s*\d+.*/, '').trim() + ', Brazil',
+    trimmed + ', Brazil',
+    trimmed.replace(/,\s*\d+\s*/, '').trim() + ', Brazil',
   ];
   for (const addr of attempts) {
     try {
