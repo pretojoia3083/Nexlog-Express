@@ -257,6 +257,8 @@ const ICON_PATHS: Record<string, string> = {
   alert: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
   'chevron-down': '<polyline points="6 9 12 15 18 9"/>',
   route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  gps: '<path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6a6 6 0 0 1 6 6"/><path d="M12 10a2 2 0 0 1 2 2"/><circle cx="12" cy="12" r="1"/>',
 };
 
 function Icon({ name, size = 20, color = 'currentColor' }: { name: string; size?: number; color?: string }) {
@@ -1665,7 +1667,7 @@ export default function NexLogExpress() {
   const renderRastreamento = () => (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 12px' }}>
       <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00E676" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6a6 6 0 0 1 6 6"/><path d="M12 10a2 2 0 0 1 2 2"/><circle cx="12" cy="12" r="1" fill="#00E676"/></svg>
+        <Icon name="gps" size={24} color="#00E676" />
         Rastreamento</h2>
       <p style={{ color: '#8A7AA8', fontSize: 13, marginBottom: 20 }}>Compartilhe sua localizacao em tempo real</p>
       <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
