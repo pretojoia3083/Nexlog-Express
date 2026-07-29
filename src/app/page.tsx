@@ -129,16 +129,30 @@ function generateBudgetNumber(): string {
   return 'ORC-' + d + '-' + r;
 }
 
-async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  try {
+function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+  return new Promise(resolve => {
     const addr = address.replace(/ - /g, ', ') + ', Brazil';
-    const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY);
-    const data = await resp.json();
-    if (data.status === 'OK' && data.results.length > 0) {
-      return { lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng };
+    if (typeof google !== 'undefined' && google.maps?.Geocoder) {
+      new google.maps.Geocoder().geocode({ address: addr }, (results, status) => {
+        if (status === 'OK' && results && results.length > 0) {
+          resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
+        } else {
+          resolve(null);
+        }
+      });
+    } else {
+      fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY)
+        .then(r => r.json())
+        .then(data => {
+          if (data.status === 'OK' && data.results.length > 0) {
+            resolve({ lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng });
+          } else {
+            resolve(null);
+          }
+        })
+        .catch(() => resolve(null));
     }
-    return null;
-  } catch { return null; }
+  });
 }
 
 async function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
