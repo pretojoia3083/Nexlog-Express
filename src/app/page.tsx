@@ -129,30 +129,24 @@ function generateBudgetNumber(): string {
   return 'ORC-' + d + '-' + r;
 }
 
-function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  return new Promise(resolve => {
-    const addr = address.replace(/ - /g, ', ') + ', Brazil';
-    if (typeof google !== 'undefined' && google.maps?.Geocoder) {
-      new google.maps.Geocoder().geocode({ address: addr }, (results, status) => {
-        if (status === 'OK' && results && results.length > 0) {
-          resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
-        } else {
-          resolve(null);
-        }
-      });
-    } else {
-      fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY)
-        .then(r => r.json())
-        .then(data => {
-          if (data.status === 'OK' && data.results.length > 0) {
-            resolve({ lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng });
-          } else {
-            resolve(null);
-          }
-        })
-        .catch(() => resolve(null));
+async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const addr = address.replace(/ - /g, ', ').replace(/,+/g, ',').trim() + ', Brazil';
+    const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY);
+    const data = await resp.json();
+    if (data.status === 'OK' && data.results.length > 0) {
+      return { lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng };
     }
-  });
+    if (data.status === 'ZERO_RESULTS') {
+      const simple = address.split(' - ')[0].replace(/,?\s*\d+/, '').trim() + ', Brazil';
+      const resp2 = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(simple) + '&key=' + GMAPS_KEY);
+      const data2 = await resp2.json();
+      if (data2.status === 'OK' && data2.results.length > 0) {
+        return { lat: data2.results[0].geometry.location.lat, lng: data2.results[0].geometry.location.lng };
+      }
+    }
+    return null;
+  } catch { return null; }
 }
 
 async function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
@@ -1235,8 +1229,23 @@ export default function NexLogExpress() {
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#FF7A1A', fontWeight: 600, marginBottom: 6 }}>
               <Icon name="truck" size={14} color="#FF7A1A" /> Ponto de Partida / Retorno
             </label>
-            <AddressInput value={pontoPartida} onChange={setPontoPartida}  placeholder="Ex: Rua das Flores, Porto Alegre"
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#E8ECF0', fontSize: 13, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <AddressInput value={pontoPartida} onChange={setPontoPartida}  placeholder="Ex: Rua das Flores, Porto Alegre"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#E8ECF0', fontSize: 13, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <button onClick={() => {
+                if ('geolocation' in navigator) {
+                  navigator.geolocation.getCurrentPosition(
+                    pos => setPontoPartida(pos.coords.latitude.toFixed(6) + ', ' + pos.coords.longitude.toFixed(6)),
+                    () => alert('Nao foi possivel obter sua localizacao')
+                  );
+                } else { alert('Geolocalizacao nao suportada'); }
+              }} title="Usar minha localizacao" style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#00E676', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', fontSize: 13, whiteSpace: 'nowrap', gap: 6 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                Minha Localizacao
+              </button>
+            </div>
             <span style={{ fontSize: 11, color: '#8A7AA8', marginTop: 3, display: 'block' }}>A rota comeca e termina aqui</span>
           </div>
           <div style={{ borderTop: '1px solid #251540', paddingTop: 14, marginBottom: 14 }}>
@@ -1385,8 +1394,23 @@ export default function NexLogExpress() {
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#FF7A1A', fontWeight: 600, marginBottom: 6 }}>
               <Icon name="truck" size={14} color="#FF7A1A" /> Ponto de Partida / Retorno
             </label>
-            <AddressInput value={calcPontoPartida} onChange={setCalcPontoPartida}  placeholder="Ex: Rua das Flores, Porto Alegre"
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#E8ECF0', fontSize: 13, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <AddressInput value={calcPontoPartida} onChange={setCalcPontoPartida}  placeholder="Ex: Rua das Flores, Porto Alegre"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#E8ECF0', fontSize: 13, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <button onClick={() => {
+                if ('geolocation' in navigator) {
+                  navigator.geolocation.getCurrentPosition(
+                    pos => setCalcPontoPartida(pos.coords.latitude.toFixed(6) + ', ' + pos.coords.longitude.toFixed(6)),
+                    () => alert('Nao foi possivel obter sua localizacao')
+                  );
+                } else { alert('Geolocalizacao nao suportada'); }
+              }} title="Usar minha localizacao" style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#00E676', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', fontSize: 13, whiteSpace: 'nowrap', gap: 6 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                Minha Localizacao
+              </button>
+            </div>
             <span style={{ fontSize: 11, color: '#8A7AA8', marginTop: 3, display: 'block' }}>O frete comeca e termina aqui</span>
           </div>
           <div style={{ borderTop: '1px solid #251540', paddingTop: 14, marginBottom: 14 }}>
