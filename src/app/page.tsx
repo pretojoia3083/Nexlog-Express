@@ -150,26 +150,30 @@ function geocodeAddress(address: string): Promise<{ lat: number; lng: number } |
   return tryNominatim(trimmed);
 }
 
-function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
-  return new Promise(resolve => {
-    const fmt = (s: string) => s.replace(/ - /g, ', ');
-    if (typeof google !== 'undefined' && google.maps?.DirectionsService) {
-      const request: any = { origin: fmt(origin), destination: fmt(destination), travelMode: google.maps.TravelMode.DRIVING };
-      if (waypoints.length > 0) {
-        request.waypoints = waypoints.map(w => ({ location: fmt(w), stopover: true }));
-      }
-      new google.maps.DirectionsService().route(request, (result, status) => {
-        if (status === 'OK' && result) resolve(result);
-        else resolve(null);
-      });
-    } else {
-      const wp = waypoints.map(w => 'via:' + encodeURIComponent(fmt(w))).join('|');
-      fetch('https://maps.googleapis.com/maps/api/directions/json?origin=' + encodeURIComponent(fmt(origin)) + '&destination=' + encodeURIComponent(fmt(destination)) + (wp ? '&waypoints=optimize:false|' + wp : '') + '&key=' + GMAPS_KEY + '&region=br&language=pt-BR')
-        .then(r => r.json())
-        .then(data => { resolve(data.status === 'OK' && data.routes.length > 0 ? data.routes[0] : null); })
-        .catch(() => resolve(null));
+async function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
+  try {
+    const allCoords: string[] = [];
+    for (const addr of [origin, destination, ...waypoints]) {
+      const c = await geocodeAddress(addr);
+      if (!c) return null;
+      allCoords.push(c.lng + ',' + c.lat);
+      await new Promise(r => setTimeout(r, 200));
     }
-  });
+    const [o, d, ...wps] = allCoords;
+    const coordsStr = [o, ...wps.filter(Boolean), d].join(';');
+    const resp = await fetch('https://router.project-osrm.org/route/v1/driving/' + coordsStr + '?overview=full&geometries=geojson&steps=false');
+    const data = await resp.json();
+    if (data.code !== 'Ok' || !data.routes?.length) return null;
+    const route = data.routes[0];
+    return {
+      legs: route.legs.map((leg: any) => ({
+        distance: { value: Math.round(leg.distance) },
+        duration: { value: Math.round(leg.duration) },
+        start_address: '', end_address: '',
+      })),
+      geometry: { coordinates: route.geometry.coordinates.map((c: number[]) => ({ lat: c[1], lng: c[0] })) },
+    };
+  } catch { return null; }
 }
 
 
