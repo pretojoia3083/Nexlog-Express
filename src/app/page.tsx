@@ -536,7 +536,12 @@ export default function NexLogExpress() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !mapRef.current || mapInstanceRef.current) return;
+    if (typeof window === 'undefined') return;
+    if (currentPage !== 'roteirizador') {
+      if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; }
+      return;
+    }
+    if (!mapRef.current || mapInstanceRef.current) return;
     try {
       const L = require('leaflet');
       const map = L.map(mapRef.current, { center: [-15.78, -47.93], zoom: 5, zoomControl: false });
@@ -547,7 +552,7 @@ export default function NexLogExpress() {
       polylineLayerRef.current = L.layerGroup().addTo(map);
     } catch {}
     return () => { if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; } };
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     if (currentPage === 'roteirizador' && mapInstanceRef.current) {
