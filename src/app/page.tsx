@@ -317,6 +317,28 @@ export default function NexLogExpress() {
   const [trackingHistory, setTrackingHistory] = useState<{ lat: number; lng: number; ts: number }[]>([]);
   const watchIdRef = useRef<number | null>(null);
   const trackingRouteRef = useRef<string>('');
+  const wakeLockRef = useRef<any>(null);
+  const trackingHistoryRef = useRef<{ lat: number; lng: number; ts: number }[]>([]);
+
+  useEffect(() => {
+    if (!trackingAtivo) return;
+    trackingHistoryRef.current = trackingHistory;
+  }, [trackingHistory]);
+
+  useEffect(() => {
+    if (!trackingAtivo) return;
+    const handleVisibility = () => {
+      if (document.hidden && trackingHistoryRef.current.length > 0) {
+        localStorage.setItem('nexlog_tracking_ativo', JSON.stringify({
+          nome: trackingRouteRef.current,
+          pontos: trackingHistoryRef.current,
+          data: new Date().toISOString(),
+        }));
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [trackingAtivo]);
 
   const [clients, setClients] = useState<Client[]>([]);
   const [showClientModal, setShowClientModal] = useState(false);
@@ -674,11 +696,18 @@ export default function NexLogExpress() {
 
   const clearRoute = () => { setPontoPartida(''); setAddresses(['', '']); setRouteResult(null); setGeocodedCoords([]); };
 
-  const startTracking = () => {
+  const startTracking = async () => {
     if (!navigator.geolocation) { alert('Geolocalizacao nao disponivel'); return; }
     setTrackingAtivo(true);
     setTrackingHistory([]);
     trackingRouteRef.current = 'Rota ' + new Date().toLocaleString('pt-BR');
+    try {
+      const wakeLock = await (navigator as any).wakeLock?.request('screen');
+      if (wakeLock) {
+        wakeLockRef.current = wakeLock;
+        wakeLock.addEventListener('release', () => {});
+      }
+    } catch {}
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -695,9 +724,15 @@ export default function NexLogExpress() {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
     setTrackingAtivo(false);
+    const trackingToSave = { nome: trackingRouteRef.current, pontos: trackingHistory, data: new Date().toISOString() };
+    localStorage.removeItem('nexlog_tracking_ativo');
     const rotas = JSON.parse(localStorage.getItem('nexlog_rotas') || '[]');
-    rotas.unshift({ id: Date.now().toString(), nome: trackingRouteRef.current, pontos: trackingHistory, data: new Date().toISOString() });
+    rotas.unshift({ id: Date.now().toString(), ...trackingToSave });
     localStorage.setItem('nexlog_rotas', JSON.stringify(rotas));
   };
 
