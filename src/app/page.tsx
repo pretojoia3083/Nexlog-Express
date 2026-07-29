@@ -131,7 +131,8 @@ function generateBudgetNumber(): string {
 
 async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   try {
-    const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address + ', Brazil') + '&key=' + GMAPS_KEY);
+    const addr = address.replace(/ - /g, ', ') + ', Brazil';
+    const resp = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY);
     const data = await resp.json();
     if (data.status === 'OK' && data.results.length > 0) {
       return { lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng };
@@ -142,8 +143,9 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
 
 async function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
   try {
-    const wp = waypoints.map(w => 'via:' + encodeURIComponent(w)).join('|');
-    const url = 'https://maps.googleapis.com/maps/api/directions/json?origin=' + encodeURIComponent(origin) + '&destination=' + encodeURIComponent(destination) + (wp ? '&waypoints=optimize:false|' + wp : '') + '&key=' + GMAPS_KEY + '&region=br&language=pt-BR';
+    const fmt = (s: string) => s.replace(/ - /g, ', ');
+    const wp = waypoints.map(w => 'via:' + encodeURIComponent(fmt(w))).join('|');
+    const url = 'https://maps.googleapis.com/maps/api/directions/json?origin=' + encodeURIComponent(fmt(origin)) + '&destination=' + encodeURIComponent(fmt(destination)) + (wp ? '&waypoints=optimize:false|' + wp : '') + '&key=' + GMAPS_KEY + '&region=br&language=pt-BR';
     const resp = await fetch(url);
     const data = await resp.json();
     if (data.status === 'OK' && data.routes.length > 0) return data.routes[0];
