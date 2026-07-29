@@ -167,20 +167,21 @@ function AddressInput({ value, onChange, placeholder, style }: { value: string; 
   const getNum = (v: string) => { const m = v.match(/(\d+)/); return m ? m[1] : ''; };
   const getCity = (v: string) => {
     const parts = v.split(' - ');
-    if (parts.length > 1) return parts[parts.length - 1].trim();
-    const m = v.match(/(\w[\w\s]*\w)\s*$/);
-    return m && m[1].length > 2 ? m[1] : '';
+    if (parts.length > 1) {
+      const last = parts[parts.length - 1].trim();
+      if (last.length > 2 && !/\d/.test(last)) return last;
+    }
+    return '';
   };
 
   const handleInput = (val: string) => {
     onChange(val);
     if (timerRef.current) clearTimeout(timerRef.current);
-    const noNum = val.replace(/\d+/, '').replace(/\s{2,}/g, ' ').trim();
-    if (noNum.length < 3) { setSuggestions([]); setShowDrop(false); return; }
+    if (val.length < 3) { setSuggestions([]); setShowDrop(false); return; }
     const cityHint = getCity(val);
     timerRef.current = setTimeout(async () => {
       try {
-        const resp = await fetch('/api/autocomplete?q=' + encodeURIComponent(noNum) + (cityHint ? '&city=' + encodeURIComponent(cityHint) : ''));
+        const resp = await fetch('/api/autocomplete?q=' + encodeURIComponent(val) + (cityHint ? '&city=' + encodeURIComponent(cityHint) : ''));
         const data = await resp.json();
         if (data.length > 0) { setSuggestions(data); setShowDrop(true); }
         else { setSuggestions([]); setShowDrop(false); }
