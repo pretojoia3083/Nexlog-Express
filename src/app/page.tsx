@@ -273,7 +273,7 @@ function FaqItem({ faq }: { faq: { q: string; a: string } }) {
 }
 
 function NexLogLogo({ sidebar = false, mobile = false }: { sidebar?: boolean; mobile?: boolean }) {
-  const w = mobile ? 220 : sidebar ? 280 : 320;
+  const w = mobile ? 200 : sidebar ? 180 : 320;
   return (
     <img src="/logo.jpg" alt="NEXLOG" style={{ width: w, height: 'auto', objectFit: 'contain' }} />
   );
