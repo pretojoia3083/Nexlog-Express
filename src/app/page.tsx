@@ -374,6 +374,8 @@ export default function NexLogExpress() {
   const [mkPlan, setMkPlan] = useState<'gratis' | 'profissional' | 'premium'>('gratis');
   const [userPlan, setUserPlan] = useState<'gratis' | 'profissional' | 'premium'>('gratis');
   const [freightSearch, setFreightSearch] = useState('');
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const deferredPromptRef = useRef<any>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -437,6 +439,17 @@ export default function NexLogExpress() {
         setUserPlan(s.plano || 'gratis');
         setCurrentPage('dashboard');
       } catch {}
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setShowInstallBanner(false);
+    } else {
+      const handler = (e: Event) => { e.preventDefault(); deferredPromptRef.current = e; setShowInstallBanner(true); };
+      window.addEventListener('beforeinstallprompt', handler);
+      window.addEventListener('appinstalled', () => { setShowInstallBanner(false); });
+      return () => window.removeEventListener('beforeinstallprompt', handler);
     }
   }, []);
 
@@ -572,6 +585,15 @@ export default function NexLogExpress() {
   };
 
   const handleLogout = () => { localStorage.removeItem('nexlog_session'); setSession(null); setCurrentPage('dashboard'); };
+
+  const handleInstallApp = async () => {
+    if (deferredPromptRef.current) {
+      deferredPromptRef.current.prompt();
+      const result = await deferredPromptRef.current.userChoice;
+      if (result.outcome === 'accepted') setShowInstallBanner(false);
+      deferredPromptRef.current = null;
+    }
+  };
 
   const handleAuth = async () => {
     setAuthError('');
@@ -2422,6 +2444,21 @@ export default function NexLogExpress() {
         </div>
       </main>
       </>
+      )}
+      {showInstallBanner && (
+        <div style={{ position: 'fixed', bottom: 20, left: 20, right: 20, zIndex: 9999, backgroundColor: '#1D0F38', borderRadius: 14, border: '1px solid #251540', padding: 16, display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', maxWidth: 400, margin: '0 auto' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#3B1063', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF7A1A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#E8ECF0', marginBottom: 2 }}>Instalar NEXLOG</div>
+            <div style={{ fontSize: 11, color: '#8A7AA8' }}>Instale como app para melhor experiencia</div>
+          </div>
+          <button onClick={handleInstallApp} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#FF7A1A,#FFB627)', color: '#FFF', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>Instalar</button>
+          <button onClick={() => setShowInstallBanner(false)} style={{ padding: 6, borderRadius: 6, border: 'none', background: 'transparent', color: '#8A7AA8', cursor: 'pointer', display: 'flex' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
       )}
       {showClientModal && renderClientModal()}
       {showTollModal && renderTollModal()}
