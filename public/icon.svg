@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="80" fill="#3B1063"/>
-  <polygon points="260 80 420 180 420 380 260 480 100 380 100 180" fill="none" stroke="#FF7A1A" stroke-width="20" stroke-linejoin="round"/>
-  <line x1="260" y1="80" x2="260" y2="480" stroke="#FF7A1A" stroke-width="16"/>
-  <line x1="100" y1="180" x2="420" y2="180" stroke="#FF7A1A" stroke-width="16"/>
-  <line x1="100" y1="380" x2="420" y2="380" stroke="#FF7A1A" stroke-width="16"/>
-  <circle cx="260" cy="280" r="50" fill="none" stroke="#9B5CF0" stroke-width="12"/>
-  <polyline points="260 260 260 280 280 295" stroke="#9B5CF0" stroke-width="12" stroke-linecap="round"/>
+  <rect x="48" y="144" width="288" height="208" rx="20" fill="none" stroke="#9B5CF0" stroke-width="26"/>
+  <polygon points="336,176 416,176 464,224 464,352 336,352 336,176" fill="none" stroke="#9B5CF0" stroke-width="26" stroke-linejoin="round"/>
+  <line x1="336" y1="280" x2="464" y2="280" stroke="#9B5CF0" stroke-width="18"/>
+  <circle cx="160" cy="400" r="44" fill="#3B1063" stroke="#FF7A1A" stroke-width="18"/>
+  <circle cx="384" cy="400" r="44" fill="#3B1063" stroke="#FF7A1A" stroke-width="18"/>
 </svg>
