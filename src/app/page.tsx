@@ -164,14 +164,53 @@ async function getRouteFromGoogle(origin: string, destination: string, waypoints
 function AddressInput({ value, onChange, placeholder, style }: { value: string; onChange: (v: string) => void; placeholder?: string; style?: React.CSSProperties }) {
   const [suggestions, setSuggestions] = useState<{ description: string }[]>([]);
   const [showDrop, setShowDrop] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [listening, setListening] = useState(false);
   const timerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scannerRef = useRef<HTMLDivElement>(null);
+  const quaggaRef = useRef<any>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (containerRef.current && !containerRef.current.contains(e.target as Node)) setShowDrop(false); };
     document.addEventListener('mousedown', handler);
     return () => { document.removeEventListener('mousedown', handler); if (timerRef.current) clearTimeout(timerRef.current); };
   }, []);
+
+  useEffect(() => {
+    if (!showScanner || !scannerRef.current) return;
+    let active = true;
+    (async () => {
+      try {
+        const Quagga = await import('@ericblade/quagga2');
+        if (!active) return;
+        await Quagga.default.init({
+          inputStream: { name: 'Live', type: 'LiveStream', target: scannerRef.current, constraints: { width: 640, height: 480, facingMode: 'environment' } },
+          decoder: { readers: ['code_128_reader', 'code_39_reader', 'ean_reader', 'ean_8_reader', 'upc_reader', 'i2of5_reader'] },
+          locate: true,
+        }, (err: any) => { if (!err && active) Quagga.default.start(); });
+        quaggaRef.current = Quagga.default;
+        Quagga.default.onDetected((data: any) => {
+          const code = data.codeResult?.code;
+          if (code && active) { onChange(code); setShowScanner(false); Quagga.default.stop(); }
+        });
+      } catch {}
+    })();
+    return () => { active = false; if (quaggaRef.current) { try { quaggaRef.current.stop(); } catch {} } };
+  }, [showScanner]);
+
+  const startVoice = () => {
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    if (!SpeechRecognition) { alert('Reconhecimento de voz nao disponivel neste navegador'); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+    setListening(true);
+    recognition.onresult = (e: any) => { onChange(e.results[0][0].transcript); setListening(false); };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+    recognition.start();
+  };
 
   const getNum = (v: string) => { const m = v.match(/(\d+)/); return m ? m[1] : ''; };
   const getCity = (v: string) => {
@@ -210,8 +249,36 @@ function AddressInput({ value, onChange, placeholder, style }: { value: string; 
   const numBadge = getNum(value);
   return (
     <div ref={containerRef} style={{ position: 'relative', flex: 1 }}>
-      <input value={value} onChange={(e) => handleInput(e.target.value)} placeholder={placeholder}
-        style={{ ...style, width: '100%', fontSize: 16 }} />
+      <div style={{ display: 'flex', gap: 4 }}>
+        <input value={value} onChange={(e) => handleInput(e.target.value)} placeholder={placeholder}
+          style={{ ...style, width: '100%', fontSize: 16 }} />
+        <button type="button" onClick={startVoice} title="Falar endereco"
+          style={{ padding: '8px', borderRadius: 8, border: '1px solid #251540', background: listening ? 'rgba(255,122,26,0.2)' : 'transparent', color: listening ? '#FF7A1A' : '#8A7AA8', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+        <button type="button" onClick={() => setShowScanner(true)} title="Ler codigo de barras"
+          style={{ padding: '8px', borderRadius: 8, border: '1px solid #251540', background: 'transparent', color: '#8A7AA8', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <line x1="7" y1="9" x2="7" y2="15"/><line x1="10" y1="9" x2="10" y2="15"/>
+            <line x1="13" y1="9" x2="13" y2="15"/><line x1="17" y1="9" x2="17" y2="15"/>
+            <line x1="20" y1="9" x2="20" y2="15"/>
+          </svg>
+        </button>
+      </div>
+      {showScanner && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ color: '#E8ECF0', fontSize: 14, marginBottom: 16, fontWeight: 600 }}>Aproxime o codigo de barras da camera</div>
+          <div ref={scannerRef} style={{ width: '100%', maxWidth: 500, aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', backgroundColor: '#000' }} />
+          <button onClick={() => { setShowScanner(false); if (quaggaRef.current) { try { quaggaRef.current.stop(); } catch {} } }}
+            style={{ marginTop: 20, padding: '12px 32px', borderRadius: 8, border: 'none', background: '#EF4444', color: '#FFF', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'inherit' }}>Cancelar</button>
+        </div>
+      )}
       {showDrop && suggestions.length > 0 && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#15092E', border: '1px solid #251540', borderRadius: 8, marginTop: 4, zIndex: 100, maxHeight: 200, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
           {suggestions.map((s, i) => (
