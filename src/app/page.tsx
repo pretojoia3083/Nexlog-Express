@@ -383,6 +383,42 @@ export default function NexLogExpress() {
   const { isLoaded: gmapsLoaded } = useJsApiLoader({ googleMapsApiKey: GMAPS_KEY || '' });
 
   useEffect(() => {
+    if (!gmapsLoaded) return;
+    if (currentPage === 'roteirizador' && !pontoPartida && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        if (typeof google !== 'undefined' && google.maps?.Geocoder) {
+          new google.maps.Geocoder().geocode({ location: { lat, lng } }, (results, status) => {
+            if (status === 'OK' && results && results.length > 0) {
+              setPontoPartida(results[0].formatted_address);
+            } else {
+              setPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
+            }
+          });
+        } else {
+          setPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
+        }
+      }, () => {});
+    }
+    if (currentPage === 'calculadora' && !calcPontoPartida && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        if (typeof google !== 'undefined' && google.maps?.Geocoder) {
+          new google.maps.Geocoder().geocode({ location: { lat, lng } }, (results, status) => {
+            if (status === 'OK' && results && results.length > 0) {
+              setCalcPontoPartida(results[0].formatted_address);
+            } else {
+              setCalcPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
+            }
+          });
+        } else {
+          setCalcPontoPartida(lat.toFixed(6) + ', ' + lng.toFixed(6));
+        }
+      }, () => {});
+    }
+  }, [currentPage, gmapsLoaded]);
+
+  useEffect(() => {
     if (mapRef.current && geocodedCoords.length > 0) fitMapBounds(mapRef.current);
   }, [geocodedCoords]);
 
