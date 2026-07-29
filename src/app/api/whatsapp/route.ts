@@ -10,8 +10,12 @@ export async function POST(req: NextRequest) {
     if (!number || !message) {
       return NextResponse.json({ error: 'number and message are required' }, { status: 400 });
     }
-    const formattedNumber = number.replace(/\D/g, '') + '@s.whatsapp.net';
-    const resp = await fetch(`${EVOLUTION_API_URL}/message/sendText/${INSTANCE_NAME}`, {
+    let cleanNumber = number.replace(/\D/g, '');
+    if (cleanNumber.length <= 11 && !cleanNumber.startsWith('55')) {
+      cleanNumber = '55' + cleanNumber;
+    }
+    const formattedNumber = cleanNumber + '@s.whatsapp.net';
+    const resp = await fetch(`${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(INSTANCE_NAME)}`, {
       method: 'POST',
       headers: {
         'apikey': EVOLUTION_API_KEY,
@@ -22,12 +26,15 @@ export async function POST(req: NextRequest) {
         text: message,
       }),
     });
-    const data = await resp.json();
+    const textBody = await resp.text();
+    let data;
+    try { data = JSON.parse(textBody); } catch { data = { raw: textBody }; }
     if (!resp.ok) {
-      return NextResponse.json({ error: data }, { status: resp.status });
+      const detail = data?.response?.message || data?.error || data?.raw || JSON.stringify(data);
+      return NextResponse.json({ error: detail, status: resp.status });
     }
     return NextResponse.json({ success: true, data });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err?.message || String(err) || 'Unknown error' }, { status: 500 });
   }
 }
