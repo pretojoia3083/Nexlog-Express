@@ -130,48 +130,24 @@ function generateBudgetNumber(): string {
 }
 
 function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  return new Promise(resolve => {
-    const trimmed = address.trim();
-    if (/^-?\d+\.?\d*\s*[,;]\s*-?\d+\.?\d*$/.test(trimmed)) {
-      const parts = trimmed.split(/[,;]/);
-      resolve({ lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) });
-      return;
-    }
-    const geocoder = typeof google !== 'undefined' && google.maps?.Geocoder ? new google.maps.Geocoder() : null;
-    const tryGeocode = (addr: string) => {
-      if (geocoder) {
-        geocoder.geocode({ address: addr }, (results, status) => {
-          if (status === 'OK' && results && results.length > 0) {
-            resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
-          } else {
-            const fallback = trimmed.replace(/,\s*\d+\s*/, '').trim();
-            if (addr !== fallback + ', Brazil') {
-              tryGeocode(fallback + ', Brazil');
-            } else {
-              resolve(null);
-            }
-          }
-        });
-      } else {
-        fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY)
-          .then(r => r.json())
-          .then(data => {
-            if (data.status === 'OK' && data.results.length > 0) {
-              resolve({ lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng });
-            } else {
-              const fallback = trimmed.replace(/,\s*\d+\s*/, '').trim();
-              if (addr !== fallback + ', Brazil') {
-                tryGeocode(fallback + ', Brazil');
-              } else {
-                resolve(null);
-              }
-            }
-          })
-          .catch(() => resolve(null));
-      }
-    };
-    tryGeocode(trimmed + ', Brazil');
-  });
+  const trimmed = address.trim();
+  if (/^-?\d+\.?\d*\s*[,;]\s*-?\d+\.?\d*$/.test(trimmed)) {
+    const parts = trimmed.split(/[,;]/);
+    return Promise.resolve({ lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) });
+  }
+  const tryNominatim = (q: string): Promise<{ lat: number; lng: number } | null> => {
+    return fetch('https://nominatim.openstreetmap.org/search?' + new URLSearchParams({ q: q + ', Brazil', format: 'json', limit: '1' }).toString(),
+      { headers: { 'User-Agent': 'NexLogExpress/1.0 (contato@nexlog.com.br)' } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        const simple = trimmed.replace(/,\s*\d+/, '').replace(/ - /g, ', ').trim();
+        if (q !== simple) return tryNominatim(simple);
+        return null;
+      })
+      .catch(() => null);
+  };
+  return tryNominatim(trimmed);
 }
 
 function getRouteFromGoogle(origin: string, destination: string, waypoints: string[]): Promise<any> {
