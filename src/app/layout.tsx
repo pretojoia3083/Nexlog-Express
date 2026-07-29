@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "NEXLOG EXPRESS",
   description: "Roteirizador e Calculadora de Frete Profissional",
   manifest: "/manifest.json",
-  icons: { icon: "/icon.svg" },
+  icons: { icon: "/logo.jpg", apple: "/logo.jpg" },
   appleWebApp: { capable: true, title: "NEXLOG", statusBarStyle: "black-translucent" },
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
   themeColor: "#3B1063",
