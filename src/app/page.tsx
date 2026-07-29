@@ -404,6 +404,19 @@ export default function NexLogExpress() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('nexlog_session');
+    if (stored) {
+      try {
+        const s = JSON.parse(stored);
+        setSession(s);
+        setUserPlan(s.plano || 'gratis');
+        setCurrentPage('dashboard');
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     const ts = document.createElement('style');
     ts.textContent = '.dark-tooltip{background:#1D0F38!important;color:#E8ECF0!important;border:1px solid #251540!important;border-radius:8px!important;padding:6px 10px!important;font-size:12px!important;font-family:inherit!important;box-shadow:0 4px 12px rgba(0,0,0,0.4)!important}.dark-tooltip::before{border-top-color:#251540!important}';
     document.head.appendChild(ts);
