@@ -584,7 +584,7 @@ export default function NexLogExpress() {
     setSidebarOpen(false);
   };
 
-  const handleLogout = () => { localStorage.removeItem('nexlog_session'); setSession(null); setCurrentPage('dashboard'); };
+  const handleLogout = () => { localStorage.removeItem('nexlog_session'); setSession(null); setCurrentPage('landing'); };
 
   const handleInstallApp = async () => {
     if (deferredPromptRef.current) {
