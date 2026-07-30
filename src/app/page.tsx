@@ -717,33 +717,58 @@ export default function NexLogExpress() {
 
   const selectPlan = (p: 'gratis' | 'profissional' | 'premium') => { setMkPlan(p); };
 
+  const [ocrProgress, setOcrProgress] = useState('');
+
   const handleOcrImage = async (file: File) => {
     setOcrProcessing(true);
     setOcrResult(null);
+    setOcrProgress('Carregando imagem...');
     const reader = new FileReader();
     reader.onload = async (e) => {
       const imgData = e.target?.result as string;
       setOcrImage(imgData);
       try {
+        setOcrProgress('Inicializando OCR...');
         const Tesseract = await import('tesseract.js');
-        const { data } = await Tesseract.recognize(imgData, 'por', { logger: (m: any) => {} });
+        setOcrProgress('Reconhecendo texto...');
+        const { data } = await Tesseract.recognize(imgData, 'por', {
+          logger: (m: any) => {
+            if (m.status === 'recognizing text') setOcrProgress('Reconhecendo: ' + (m.progress ? Math.round(m.progress * 100) + '%' : ''));
+            else if (m.status === 'loading tesseract core') setOcrProgress('Carregando motor OCR...');
+            else if (m.status === 'initializing tesseract') setOcrProgress('Inicializando...');
+            else if (m.status === 'loading language traineddata') setOcrProgress('Baixando dados portugues...');
+            else if (m.status === 'initializing api') setOcrProgress('Preparando...');
+          }
+        });
+        setOcrProgress('');
         setOcrResult(data.text);
         const linhas = data.text.split('\n').map((l: string) => l.trim()).filter(Boolean);
-        const enderecos = linhas.filter((l: string) => /^(rua|av|avenida|rod|rodovia|estrada|travessa|alameda|praça|pracoa)/i.test(l) || /\d{5}-?\d{3}/.test(l) || l.includes(','));
 
-        // Try to find origin (remetente) and destination (destinatario) addresses
+        // Try to find origin (remetente/shipper) and destination (destinatario/consignee)
         let origem = '', destino = '';
+        let proximaEhOrigem = false, proximaEhDestino = false;
+
         for (let i = 0; i < linhas.length; i++) {
           const l = linhas[i].toLowerCase();
-          if (/(remetente|origem|expedidor)/i.test(l) && i + 1 < linhas.length) {
-            origem = linhas[i + 1];
-          }
-          if (/(destinatario|destino|recebedor)/i.test(l) && i + 1 < linhas.length) {
-            destino = linhas[i + 1];
-          }
+
+          // Labels that indicate next line is the address
+          if (/(remetente|origem|expedidor|emitente|shipper)/i.test(l)) { proximaEhOrigem = true; continue; }
+          if (/(destinatario|destino|recebedor|consignee|tomador)/i.test(l)) { proximaEhDestino = true; continue; }
+
+          if (proximaEhOrigem && !origem && l.length > 5) { origem = linhas[i]; proximaEhOrigem = false; }
+          if (proximaEhDestino && !destino && l.length > 5) { destino = linhas[i]; proximaEhDestino = false; }
         }
-        if (!origem && enderecos.length > 0) origem = enderecos[0];
-        if (!destino && enderecos.length > 1) destino = enderecos[1];
+
+        // Fallback: find lines that look like addresses
+        if (!origem || !destino) {
+          const enderecos = linhas.filter((l: string) =>
+            /^(rua|av|avenida|rod|rodovia|estrada|travessa|alameda|praça|pracoa|st|r\.)/i.test(l) ||
+            /\d{5}-?\d{3}/.test(l) ||
+            (l.includes(',') && l.length > 10)
+          );
+          if (!origem && enderecos.length > 0) origem = enderecos[0];
+          if (!destino && enderecos.length > 1) destino = enderecos[1];
+        }
 
         if (origem && destino) {
           setPontoPartida(origem);
@@ -2633,24 +2658,41 @@ export default function NexLogExpress() {
               <div style={{ textAlign: 'center', padding: 40 }}>
                 <div style={{ width: 40, height: 40, border: '3px solid #251540', borderTopColor: '#9B5CF0', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
                 <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-                <div style={{ color: '#8A7AA8', fontSize: 13 }}>Processando imagem...</div>
+                <div style={{ color: '#8A7AA8', fontSize: 13, marginBottom: 8 }}>{ocrProgress || 'Processando...'}</div>
+                {ocrImage && <img src={ocrImage} alt="documento" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, marginTop: 8 }} />}
               </div>
             ) : (
               <div>
                 {ocrResult && ocrResult !== 'Erro ao processar imagem' ? (
-                  <div style={{ color: '#00E676', fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Enderecos extraidos com sucesso!
+                  <div>
+                    <div style={{ color: '#00E676', fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
+                      Enderecos extraidos com sucesso!
+                    </div>
+                    <div style={{ backgroundColor: '#15092E', borderRadius: 8, padding: 12, maxHeight: 200, overflowY: 'auto', fontSize: 12, color: '#8A7AA8', fontFamily: 'monospace', whiteSpace: 'pre-wrap', marginBottom: 12 }}>{ocrResult}</div>
                   </div>
                 ) : (
-                  <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 16 }}>
-                    {ocrResult || 'Erro ao processar imagem'}
+                  <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 12 }}>
+                    {ocrResult || 'Nao foi possivel extrair enderecos automaticamente'}
                   </div>
                 )}
-                <button onClick={() => { setShowOcrModal(false); setOcrImage(null); setOcrResult(null); }}
-                  style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#251540', color: '#E8ECF0', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
-                  Fechar
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <textarea readOnly value={ocrResult || ''} rows={5}
+                    style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #251540', backgroundColor: '#15092E', color: '#E8ECF0', fontSize: 12, fontFamily: 'monospace', outline: 'none', resize: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  {ocrResult && ocrResult !== 'Erro ao processar imagem' && (
+                    <button onClick={() => { navigator.clipboard.writeText(ocrResult || ''); }}
+                      style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #251540', background: 'transparent', color: '#9B5CF0', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      Copiar texto
+                    </button>
+                  )}
+                  <button onClick={() => { setShowOcrModal(false); setOcrImage(null); setOcrResult(null); }}
+                    style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#251540', color: '#E8ECF0', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
+                    {ocrResult && ocrResult !== 'Erro ao processar imagem' ? 'Fechar' : 'Tentar novamente'}
+                  </button>
+                </div>
               </div>
             )}
           </div>
