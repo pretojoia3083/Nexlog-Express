@@ -791,13 +791,26 @@ export default function NexLogExpress() {
     setAddresses(next);
   };
 
+  useEffect(() => {
+    const allPts = [pontoPartida, ...addresses].filter(Boolean);
+    if (allPts.length === 0) return;
+    const timer = setTimeout(async () => {
+      const coords: { lat: number; lng: number }[] = [];
+      for (const addr of allPts) {
+        const c = await geocodeAddress(addr);
+        if (c) coords.push(c);
+      }
+      if (coords.length > 0) setGeocodedCoords(coords);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [pontoPartida, addresses]);
+
   const calculateRoute = async () => {
     if (!pontoPartida.trim()) { alert('Informe o ponto de partida'); return; }
     const valid = addresses.filter(a => a.trim());
     if (valid.length < 1) { alert('Adicione pelo menos 1 destino'); return; }
     setIsCalculating(true);
     setRouteResult(null);
-    setGeocodedCoords([]);
     try {
       const allPts = [pontoPartida.trim(), ...valid];
       const coords: { lat: number; lng: number }[] = [];
