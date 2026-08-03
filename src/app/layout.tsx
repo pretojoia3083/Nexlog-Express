@@ -1,14 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#7B2FBE",
+};
 
 export const metadata: Metadata = {
   title: "NEXLOG EXPRESS",
   description: "Roteirizador e Calculadora de Frete Profissional",
   manifest: "/manifest.json",
-  icons: { icon: "/logo.jpg", apple: "/logo.jpg" },
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
   appleWebApp: { capable: true, title: "NEXLOG", statusBarStyle: "black-translucent" },
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
-  themeColor: "#3B1063",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body style={{ margin: 0, padding: 0, background: "#0D0817" }}>
+      <body style={{ margin: 0, padding: 0, background: "#F5F7FA" }}>
         {children}
       </body>
     </html>

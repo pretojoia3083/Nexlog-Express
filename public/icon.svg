@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="80" fill="#3B1063"/>
-  <g stroke="#9B5CF0" stroke-width="24" fill="none" stroke-linejoin="round">
-    <rect x="40" y="136" width="288" height="200" rx="16"/>
-    <polygon points="328,168 408,168 456,216 456,336 328,336"/>
-    <line x1="328" y1="264" x2="456" y2="264" stroke-width="16"/>
-    <rect x="296" y="168" width="32" height="56" rx="4"/>
+  <rect width="512" height="512" fill="#7B2FBE"/>
+  <g stroke="#FFFFFF" stroke-width="15" fill="none" stroke-linejoin="round">
+    <rect x="122" y="182" width="179" height="124" rx="10"/>
+    <polygon points="301,201 350,201 380,231 380,306 301,306"/>
+    <line x1="301" y1="261" x2="380" y2="261" stroke-width="10"/>
+    <rect x="281" y="182" width="20" height="35" rx="3"/>
   </g>
-  <circle cx="144" cy="384" r="40" fill="#3B1063" stroke="#FF7A1A" stroke-width="16"/>
-  <circle cx="376" cy="384" r="40" fill="#3B1063" stroke="#FF7A1A" stroke-width="16"/>
+  <circle cx="187" cy="335" r="25" fill="#7B2FBE" stroke="#FF6B00" stroke-width="10"/>
+  <circle cx="330" cy="335" r="25" fill="#7B2FBE" stroke="#FF6B00" stroke-width="10"/>
 </svg>

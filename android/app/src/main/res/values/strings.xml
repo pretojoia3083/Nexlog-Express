@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NEXLOG Express</string>
+    <string name="title_activity_main">NEXLOG Express</string>
+    <string name="package_name">com.nexlog.express</string>
+    <string name="custom_url_scheme">com.nexlog.express</string>
+</resources>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 150" width="660" height="150">
+  <defs>
+    <style>
+      .nexlog { font-family: 'Segoe UI', Arial, sans-serif; font-weight: 800; fill: #7B2FBE; letter-spacing: 2px; }
+      .express { font-family: 'Segoe UI', Arial, sans-serif; font-weight: 800; fill: #FF6B00; letter-spacing: 2px; }
+    </style>
+  </defs>
+
+  <text x="330" y="98" text-anchor="middle" font-size="60">
+    <tspan class="nexlog">Nexlog</tspan><tspan class="express">Express</tspan>
+  </text>
+</svg>

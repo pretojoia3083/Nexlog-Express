@@ -4,20 +4,20 @@
   "description": "Roteirizador e Calculadora de Frete Profissional",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D0817",
-  "theme_color": "#3B1063",
+  "background_color": "#0F1319",
+  "theme_color": "#7B2FBE",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/logo.jpg",
+      "src": "/icon.svg",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/logo.jpg",
+      "src": "/icon.svg",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
